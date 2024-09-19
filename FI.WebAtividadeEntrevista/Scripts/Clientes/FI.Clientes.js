@@ -83,23 +83,59 @@ const AddBeneficiario = () => {
         return;
     }
 
-    $('#tBodyBeneficiario').append(
-        `
-        <tr id="${cpf}">
-            <td>${cpf}</td>
-            <td>${nome}</td>
-            <td>
-                <button class="btn btn-primary btn-sm">Alterar</button>
-                <button class="btn btn-primary btn-sm exclui" type="button">Excluir</button>
-            </td>
-        </tr>
-    `)
+    AddBeneficiarioTable(nome, cpf);
 
     lstBeneficiarios.push({ "Nome": nome, "Cpf": cpf })
 
     $('#CpfBeneficiario').val("");
     $('#NomeBeneficiario').val("");
 }
+
+const AddBeneficiarioTable = (nome, cpf) => {
+    $('#tBodyBeneficiario').append(
+        `
+        <tr id="${cpf}">
+            <td>${cpf}</td>
+            <td>${nome}</td>
+            <td>
+                <button class="btn btn-primary btn-sm alterar">Alterar</button>
+                <button class="btn btn-primary btn-sm exclui" type="button">Excluir</button>
+            </td>
+        </tr>
+    `)
+}
+
+const SubmitAlterarBeneficiario = () => {
+    var cpf = $('#CpfBeneficiario').val();
+    var nome = $('#NomeBeneficiario').val();
+
+    for (let i = 0; i < lstBeneficiarios.length; i++) {
+        if (lstBeneficiarios[i].Cpf == cpf) {
+            lstBeneficiarios[i].Cpf = cpf;
+            lstBeneficiarios[i].Nome = nome;
+        }
+    }
+
+    AddBeneficiarioTable(nome, cpf);
+
+    $('#CpfBeneficiario').val("");
+    $('#NomeBeneficiario').val("");
+    $('#IncluirBeneficiario').show();
+    $('#AlterarBeneficiario').hide();
+}
+
+$("#tBodyBeneficiario").on('click', '.alterar', function () {
+    var cpf = $(this).closest('tr').attr('id');
+    var beneficiario = lstBeneficiarios.find(x => x.Cpf == cpf);
+
+    $('#CpfBeneficiario').val(cpf);
+    $('#NomeBeneficiario').val(beneficiario.Nome);
+
+    $(this).closest('tr').remove();
+
+    $('#IncluirBeneficiario').hide();
+    $('#AlterarBeneficiario').show();
+})
 
 $("#tBodyBeneficiario").on('click', '.exclui', function () {
     var cpf = $(this).closest('tr').attr('id');

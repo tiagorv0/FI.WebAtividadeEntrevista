@@ -83,6 +83,7 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="pull-left">
+                <button onclick="ModalBeneficiarios()" type="button" class="btn btn-primary">Beneficiários</button>
             </div>
             <div class="pull-right">
                 <button type="submit" class="btn btn-sm btn-success">Salvar</button>
@@ -93,8 +94,6 @@
 
 
 </form>
-
-
 
 <div id="ModalBeneficiarios" class="modal fade">
     <div class="modal-dialog">
@@ -119,7 +118,8 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <button type="button" class="btn btn-success mb-3" onclick='AddBeneficiario()'>Incluir</button>
+                            <button type="button" class="btn btn-success mb-3" style="margin-top: 10px;" onclick='AddBeneficiario()' id="IncluirBeneficiario">Incluir</button>
+                            <button type="button" class="btn btn-primary mb-3" style="display: none; margin-top: 10px;" id="AlterarBeneficiario" onclick='SubmitAlterarBeneficiario()'>Alterar</button>
                         </div>
                     </div>
                 </form>
@@ -140,5 +140,5 @@
     </div>
 </div>
 
-<button onclick="ModalBeneficiarios()" class="btn btn-primary">Beneficiários</button>
+
 

@@ -20,7 +20,7 @@ namespace FI.WebAtividadeEntrevista.Models
         /// CPF
         /// </summary>
         [Required]
-        [MinLength(11, ErrorMessage = "CPF deve ter 11 dígitos")]
+        [MinLength(14, ErrorMessage = "CPF deve ter 11 dígitos")]
         public string Cpf { get; set; }
 
         /// <summary>

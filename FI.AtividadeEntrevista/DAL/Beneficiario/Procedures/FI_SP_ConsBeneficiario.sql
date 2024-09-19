@@ -1,4 +1,4 @@
-CREATE PROC FI_SP_ConsBeneficiario
+CREATE PROC FI_SP_ConsBeneficiarioV2
 	@ID BIGINT
 AS
 BEGIN

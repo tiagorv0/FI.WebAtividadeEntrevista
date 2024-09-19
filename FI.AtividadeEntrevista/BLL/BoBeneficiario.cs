@@ -56,6 +56,15 @@ namespace FI.AtividadeEntrevista.BLL
         }
 
         /// <summary>
+        /// Lista os beneficiarios por cliente
+        /// </summary>
+        public List<DML.Beneficiario> ListarByIdCliente(long idCliente)
+        {
+            DAL.DaoBeneficiario cli = new DAL.DaoBeneficiario();
+            return cli.ListarByIdCliente(idCliente);
+        }
+
+        /// <summary>
         /// Lista os beneficiarios
         /// </summary>
         public List<DML.Beneficiario> Pesquisa(int iniciarEm, int quantidade, string campoOrdenacao, bool crescente, out int qtd)

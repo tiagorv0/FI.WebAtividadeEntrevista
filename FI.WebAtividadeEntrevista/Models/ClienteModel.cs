@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FI.WebAtividadeEntrevista.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -71,8 +72,10 @@ namespace WebAtividadeEntrevista.Models
         /// CPF
         /// </summary>
         [Required]
-        [StringLength(11, ErrorMessage = "CPF deve ter 11 dígitos")]
+        [StringLength(14, ErrorMessage = "CPF deve ter 11 dígitos")]
         public string Cpf { get; set; }
+
+        public List<BeneficiarioModel> Beneficiarios { get; set; }
 
     }    
 }

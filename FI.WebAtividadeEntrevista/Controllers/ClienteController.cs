@@ -6,11 +6,17 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using FI.AtividadeEntrevista.DML;
+using FI.WebAtividadeEntrevista.Models;
+using AutoMapper;
+using FI.WebAtividadeEntrevista.App_Start;
+using System.Reflection;
 
 namespace WebAtividadeEntrevista.Controllers
 {
     public class ClienteController : Controller
     {
+        readonly IMapper mapper = AutoMapperConfig._mapper;
+
         public ActionResult Index()
         {
             return View();
@@ -26,7 +32,7 @@ namespace WebAtividadeEntrevista.Controllers
         public JsonResult Incluir(ClienteModel model)
         {
             BoCliente bo = new BoCliente();
-            
+
             if (!this.ModelState.IsValid)
             {
                 List<string> erros = (from item in ModelState.Values
@@ -36,26 +42,43 @@ namespace WebAtividadeEntrevista.Controllers
                 Response.StatusCode = 400;
                 return Json(string.Join(Environment.NewLine, erros));
             }
-            else
+
+            if (bo.VerificarExistencia(model.Cpf))
             {
-                
-                model.Id = bo.Incluir(new Cliente()
-                {                    
-                    CEP = model.CEP,
-                    Cidade = model.Cidade,
-                    Email = model.Email,
-                    Estado = model.Estado,
-                    Logradouro = model.Logradouro,
-                    Nacionalidade = model.Nacionalidade,
-                    Nome = model.Nome,
-                    Sobrenome = model.Sobrenome,
-                    Telefone = model.Telefone,
-                    Cpf = model.Cpf
-                });
+                Response.StatusCode = 400;
+                return Json("CPF Existente!");
+            }
+
+            model.Id = bo.Incluir(new Cliente()
+            {
+                CEP = model.CEP,
+                Cidade = model.Cidade,
+                Email = model.Email,
+                Estado = model.Estado,
+                Logradouro = model.Logradouro,
+                Nacionalidade = model.Nacionalidade,
+                Nome = model.Nome,
+                Sobrenome = model.Sobrenome,
+                Telefone = model.Telefone,
+                Cpf = model.Cpf
+            });
+
+            if (model.Beneficiarios.Count > 0) {
+                var boB = new BoBeneficiario();
+
+                foreach (var beneficiario in model.Beneficiarios)
+                {
+                    boB.Incluir(new Beneficiario()
+                    {
+                        Nome = beneficiario.Nome,
+                        Cpf= beneficiario.Cpf,
+                        IdCliente = model.Id
+                    });
+                }
+            }
 
            
-                return Json("Cadastro efetuado com sucesso");
-            }
+            return Json("Cadastro efetuado com sucesso");
         }
 
         [HttpPost]
@@ -72,24 +95,61 @@ namespace WebAtividadeEntrevista.Controllers
                 Response.StatusCode = 400;
                 return Json(string.Join(Environment.NewLine, erros));
             }
-            else
+
+            bo.Alterar(new Cliente()
             {
-                bo.Alterar(new Cliente()
+                Id = model.Id,
+                CEP = model.CEP,
+                Cidade = model.Cidade,
+                Email = model.Email,
+                Estado = model.Estado,
+                Logradouro = model.Logradouro,
+                Nacionalidade = model.Nacionalidade,
+                Nome = model.Nome,
+                Sobrenome = model.Sobrenome,
+                Telefone = model.Telefone,
+                Cpf = model.Cpf
+            });
+
+            var boB = new BoBeneficiario();
+            var beneficiarios = boB.ListarByIdCliente(model.Id);
+
+            var modelBeneficiarios = mapper.Map<List<Beneficiario>>(model.Beneficiarios);
+
+            BeneficiariosParaIncluir(modelBeneficiarios, beneficiarios, boB, model.Id);
+            BeneficiariosParaRemover(modelBeneficiarios, beneficiarios, boB, model.Id);
+
+            modelBeneficiarios.Where(x => beneficiarios.Any(b => b.Id == x.Id))
+                                                                  .ToList()
+                                                                  .ForEach(x => boB.Alterar(x));
+
+            return Json("Cadastro alterado com sucesso");
+        }
+
+        private void BeneficiariosParaIncluir(List<Beneficiario> beneficiariosNovos, List<Beneficiario> beneficiariosExistentes, BoBeneficiario banco, long clienteId)
+        {
+            var beneficiariosParaIncluir = beneficiariosNovos.Where(x => !beneficiariosExistentes.Any(b => b.Id == x.Id));
+
+            if (beneficiariosParaIncluir.Any())
+            {
+                foreach (var beneficiario in beneficiariosParaIncluir)
                 {
-                    Id = model.Id,
-                    CEP = model.CEP,
-                    Cidade = model.Cidade,
-                    Email = model.Email,
-                    Estado = model.Estado,
-                    Logradouro = model.Logradouro,
-                    Nacionalidade = model.Nacionalidade,
-                    Nome = model.Nome,
-                    Sobrenome = model.Sobrenome,
-                    Telefone = model.Telefone,
-                    Cpf = model.Cpf
-                });
-                               
-                return Json("Cadastro alterado com sucesso");
+                    beneficiario.IdCliente = clienteId;
+                    banco.Incluir(beneficiario);
+                }
+            }
+        }
+
+        private void BeneficiariosParaRemover(List<Beneficiario> beneficiariosNovos, List<Beneficiario> beneficiariosExistentes, BoBeneficiario banco, long clienteId)
+        {
+            var beneficiariosParaRemover = beneficiariosExistentes.Where(x => !beneficiariosNovos.Any(b => b.Id == x.Id));
+
+            if (beneficiariosParaRemover.Any())
+            {
+                foreach (var beneficiario in beneficiariosParaRemover)
+                {
+                    banco.Excluir(beneficiario.Id);
+                }
             }
         }
 
@@ -117,7 +177,23 @@ namespace WebAtividadeEntrevista.Controllers
                     Cpf = cliente.Cpf
                 };
 
-            
+                var boB = new BoBeneficiario();
+                var beneficiarios = boB.ListarByIdCliente(model.Id);
+
+                if (beneficiarios.Count > 0)
+                {
+                    model.Beneficiarios = new List<BeneficiarioModel>();
+                    foreach (var item in beneficiarios)
+                    {
+                        model.Beneficiarios.Add(new BeneficiarioModel()
+                        {
+                            Id = item.Id,
+                            Nome = item.Nome,
+                            Cpf = item.Cpf,
+                            IdCliente = item.IdCliente,
+                        });
+                    }
+                }
             }
 
             return View(model);

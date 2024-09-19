@@ -1,4 +1,4 @@
-﻿CREATE PROC FI_SP_ConsCliente
+﻿CREATE PROC FI_SP_ConsClienteV2
 	@ID BIGINT
 AS
 BEGIN
